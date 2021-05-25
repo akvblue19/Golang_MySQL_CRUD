@@ -7,9 +7,24 @@ import (
     "text/template"
 
     _ "github.com/go-sql-driver/mysql"
-)
+) 
 
-type Employee struct {
+//------------------DATABASE--------------------------------------------
+//---------------------------------------------------------------------
+// db name -> go
+//for database table->
+/*
+DROP TABLE IF EXISTS `student`;
+CREATE TABLE `student` (
+  `id` int(6) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(30) NOT NULL,
+  `city` varchar(30) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+*/
+//-----------------------------------------------------------------------------
+
+type Student struct {
     Id    int
     Name  string
     City string
@@ -31,12 +46,12 @@ var tmpl = template.Must(template.ParseGlob("form/*"))
 
 func Index(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
-    selDB, err := db.Query("SELECT * FROM Employee ORDER BY id DESC")
+    selDB, err := db.Query("SELECT * FROM Student ORDER BY id DESC")
     if err != nil {
         panic(err.Error())
     }
-    emp := Employee{}
-    res := []Employee{}
+    std := Student{}
+    res := []Student{}
     for selDB.Next() {
         var id int
         var name, city string
@@ -44,10 +59,10 @@ func Index(w http.ResponseWriter, r *http.Request) {
         if err != nil {
             panic(err.Error())
         }
-        emp.Id = id
-        emp.Name = name
-        emp.City = city
-        res = append(res, emp)
+        std.Id = id
+        std.Name = name
+        std.City = city
+        res = append(res, std)
     }
     tmpl.ExecuteTemplate(w, "Index", res)
     defer db.Close()
@@ -56,11 +71,11 @@ func Index(w http.ResponseWriter, r *http.Request) {
 func Show(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     nId := r.URL.Query().Get("id")
-    selDB, err := db.Query("SELECT * FROM Employee WHERE id=?", nId)
+    selDB, err := db.Query("SELECT * FROM Student WHERE id=?", nId)
     if err != nil {
         panic(err.Error())
     }
-    emp := Employee{}
+    std := Student{}
     for selDB.Next() {
         var id int
         var name, city string
@@ -68,11 +83,11 @@ func Show(w http.ResponseWriter, r *http.Request) {
         if err != nil {
             panic(err.Error())
         }
-        emp.Id = id
-        emp.Name = name
-        emp.City = city
+        std.Id = id
+        std.Name = name
+        std.City = city
     }
-    tmpl.ExecuteTemplate(w, "Show", emp)
+    tmpl.ExecuteTemplate(w, "Show", std)
     defer db.Close()
 }
 
@@ -83,11 +98,11 @@ func New(w http.ResponseWriter, r *http.Request) {
 func Edit(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
     nId := r.URL.Query().Get("id")
-    selDB, err := db.Query("SELECT * FROM Employee WHERE id=?", nId)
+    selDB, err := db.Query("SELECT * FROM Student WHERE id=?", nId)
     if err != nil {
         panic(err.Error())
     }
-    emp := Employee{}
+    Std := Student{}
     for selDB.Next() {
         var id int
         var name, city string
@@ -95,11 +110,11 @@ func Edit(w http.ResponseWriter, r *http.Request) {
         if err != nil {
             panic(err.Error())
         }
-        emp.Id = id
-        emp.Name = name
-        emp.City = city
+        Std.Id = id
+        Std.Name = name
+        Std.City = city
     }
-    tmpl.ExecuteTemplate(w, "Edit", emp)
+    tmpl.ExecuteTemplate(w, "Edit", Std)
     defer db.Close()
 }
 
@@ -108,7 +123,7 @@ func Insert(w http.ResponseWriter, r *http.Request) {
     if r.Method == "POST" {
         name := r.FormValue("name")
         city := r.FormValue("city")
-        insForm, err := db.Prepare("INSERT INTO Employee(name, city) VALUES(?,?)")
+        insForm, err := db.Prepare("INSERT INTO Student(name, city) VALUES(?,?)")
         if err != nil {
             panic(err.Error())
         }
@@ -125,7 +140,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
         name := r.FormValue("name")
         city := r.FormValue("city")
         id := r.FormValue("uid")
-        insForm, err := db.Prepare("UPDATE Employee SET name=?, city=? WHERE id=?")
+        insForm, err := db.Prepare("UPDATE Student SET name=?, city=? WHERE id=?")
         if err != nil {
             panic(err.Error())
         }
@@ -138,12 +153,12 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 func Delete(w http.ResponseWriter, r *http.Request) {
     db := dbConn()
-    emp := r.URL.Query().Get("id")
-    delForm, err := db.Prepare("DELETE FROM Employee WHERE id=?")
+    std := r.URL.Query().Get("id")
+    delForm, err := db.Prepare("DELETE FROM Student WHERE id=?")
     if err != nil {
         panic(err.Error())
     }
-    delForm.Exec(emp)
+    delForm.Exec(std)
     log.Println("DELETE")
     defer db.Close()
     http.Redirect(w, r, "/", 301)
